@@ -18,6 +18,7 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.svm import SVC
 from sklearn.preprocessing import label_binarize
+from sklearn.model_selection import StratifiedKFold
 
 TRAINING_TABLE = "syn10495809"
 INDEX_COL = "dataFileHandleId"
@@ -65,9 +66,9 @@ def read_data(path, phenotype):
     to_keep = submission_template.index
     train = train.loc[to_keep.intersection(train.index)]
     train_X = train.drop(['tremorScore', 'dyskinesiaScore', 'bradykinesiaScore', 'patient'],
-            axis=1)
-    train_y = train["{}Score".format(phenotype)]
-    patient = train.patient
+            axis=1).values
+    train_y = train["{}Score".format(phenotype)].values
+    patient = train.patient.values
     return train_X, train_y, patient
 
 def get_table(synId):
@@ -199,9 +200,11 @@ def score(phenotype, submission):
     Subjs = np.unique(patient)
     weighted_aupr = []
 
-    for Subj in Subjs:
-        trainFeat = train_X[patient!=Subj].values; trainScore = train_y[patient!=Subj].values
-        testFeat = train_X[patient==Subj].values; testScore = train_y[patient==Subj].values
+    skf = StratifiedKFold(n_splits=10,shuffle=True)
+
+    for trainInd, testInd in skf.split(train_X,train_y):
+        trainFeat = train_X[trainInd]; trainScore = train_y[trainInd]
+        testFeat = train_X[testInd]; testScore = train_y[testInd]
         ensemble = train_ensemble(trainFeat, trainScore)
         results, y_score, y_true = getNonLinearInterpAupr(testFeat, testScore,
                 np.arange(len(CATEGORY_WEIGHTS[phenotype])), ensemble)
@@ -217,7 +220,7 @@ def main():
     """ For use on command line. Only returns AUPRC"""
     args = read_args()
     aupr, y_score, y_true = score(args.phenotype, args.submission)
-    print("AUPRC: {}".format(aupr))
+    print("AUPRC: {:.3f}".format(np.mean(aupr)))
     return aupr
 
 if __name__ == "__main__":

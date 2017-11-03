@@ -200,7 +200,7 @@ def score(phenotype, submission):
     Subjs = np.unique(patient)
     weighted_aupr = []
 
-    skf = StratifiedKFold(n_splits=10,shuffle=True)
+    skf = StratifiedKFold(n_splits=10,shuffle=True,random_state=10)
 
     for trainInd, testInd in skf.split(train_X,train_y):
         trainFeat = train_X[trainInd]; trainScore = train_y[trainInd]

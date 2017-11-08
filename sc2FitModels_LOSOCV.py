@@ -68,8 +68,7 @@ def read_data(path, phenotype):
     train_X = train.drop(['tremorScore', 'dyskinesiaScore', 'bradykinesiaScore', 'patient'],
             axis=1).values
     train_y = train["{}Score".format(phenotype)].values
-    patient = train.patient.values
-    return train_X, train_y, patient
+    return train_X, train_y
 
 def get_table(synId):
     """ Returns all rows from a Synapse Table as a DataFrame """
@@ -196,7 +195,7 @@ def score(phenotype, submission):
     y_score (np.ndarray)
     y_true (np.ndarray)
     """
-    train_X, train_y, patient = read_data(submission, phenotype)
+    train_X, train_y = read_data(submission, phenotype)
     Subjs = np.unique(patient)
     weighted_aupr = []
 

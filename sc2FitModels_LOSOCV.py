@@ -65,7 +65,7 @@ def read_data(path, phenotype):
     submission_template = pd.read_csv(submission_template.path, index_col='dataFileHandleId')
     to_keep = submission_template.index
     train = train.loc[to_keep.intersection(train.index)]
-    train_X = train.drop(['tremorScore', 'dyskinesiaScore', 'bradykinesiaScore', 'patient'],
+    train_X = train.drop(['tremorScore', 'dyskinesiaScore', 'bradykinesiaScore'],
             axis=1).values
     train_y = train["{}Score".format(phenotype)].values
     return train_X, train_y
@@ -196,7 +196,7 @@ def score(phenotype, submission):
     y_true (np.ndarray)
     """
     train_X, train_y = read_data(submission, phenotype)
-    Subjs = np.unique(patient)
+    # Subjs = np.unique(patient)
     weighted_aupr = []
 
     skf = StratifiedKFold(n_splits=10,shuffle=True,random_state=10)
